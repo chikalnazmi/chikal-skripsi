@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Log;
 
 class InputController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
         
@@ -20,8 +20,31 @@ class InputController extends Controller
             return redirect()->route('dashboard');
         }
 
-        // Admin sees all
-        $inputs = Input::with(['hasils', 'user'])->latest()->get();
+        // Admin sees all, build query with filters
+        $query = Input::with(['hasils', 'user']);
+
+        // 1. Filter Search (by File Name or Uploader Name)
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function($q) use ($search) {
+                $q->where('nama_file', 'like', "%{$search}%")
+                  ->orWhereHas('user', function($q2) use ($search) {
+                      $q2->where('nama', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // 2. Filter Status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // 3. Filter Date
+        if ($request->filled('date')) {
+            $query->whereDate('created_at', $request->date);
+        }
+
+        $inputs = $query->latest()->paginate(10)->withQueryString();
         
         return view('inputs.index', compact('inputs'));
     }

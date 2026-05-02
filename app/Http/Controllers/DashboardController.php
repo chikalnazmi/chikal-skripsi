@@ -8,14 +8,38 @@ use App\Models\User;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $user = auth()->user();
         
         if ($user->id_role == 1) { // Admin — keep existing dashboard
             $totalInputs = Input::count();
             $totalUsers = User::count();
-            return view('dashboard', compact('totalInputs', 'totalUsers'));
+            
+            // Status ratio chart data
+            $statusCounts = [
+                'pending' => Input::where('status', 'pending')->count(),
+                'processing' => Input::where('status', 'processing')->count(),
+                'completed' => Input::where('status', 'completed')->count(),
+                'failed' => Input::where('status', 'failed')->count(),
+            ];
+
+            // Filter for Trend Chart
+            $days = $request->input('range', 7); // Default 7 days
+            if (!in_array($days, [7, 14, 30])) {
+                $days = 7;
+            }
+
+            // Upload trend
+            $trendDates = [];
+            $trendCounts = [];
+            for ($i = $days - 1; $i >= 0; $i--) {
+                $date = now()->subDays($i)->format('Y-m-d');
+                $trendDates[] = now()->subDays($i)->format('d M');
+                $trendCounts[] = Input::whereDate('created_at', $date)->count();
+            }
+
+            return view('dashboard', compact('totalInputs', 'totalUsers', 'statusCounts', 'trendDates', 'trendCounts', 'days'));
         }
 
         // Regular User — new workspace dashboard

@@ -22,14 +22,33 @@
 </div>
 
 <div class="content-box">
-    <h2 style="margin-bottom: 20px;">Riwayat Data</h2>
+    <h2 style="margin-bottom: 15px;">Riwayat Data</h2>
+    
+    <div style="margin-bottom: 20px;">
+        <!-- Filter Form -->
+        <form action="{{ route('inputs.index') }}" method="GET" style="display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-start;">
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari file / uploader..." class="form-control" style="width:200px; padding:8px; border-radius:8px; border:1px solid #ccc;">
+            
+            <select name="status" class="form-control" style="width:150px; padding:8px; border-radius:8px; border:1px solid #ccc;">
+                <option value="">Semua Status</option>
+                <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Pending</option>
+                <option value="processing" {{ request('status') == 'processing' ? 'selected' : '' }}>Processing</option>
+                <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
+                <option value="failed" {{ request('status') == 'failed' ? 'selected' : '' }}>Failed</option>
+            </select>
+            <input type="date" name="date" value="{{ request('date') }}" class="form-control" style="width:150px; padding:8px; border-radius:8px; border:1px solid #ccc;">
+            
+            <button type="submit" class="btn btn-dark btn-sm" style="padding:8px 15px;"><i class="ph-bold ph-funnel"></i> Filter</button>
+            <a href="{{ route('inputs.index') }}" class="btn btn-outline btn-sm" style="padding:8px 15px;"><i class="ph-bold ph-arrows-clockwise"></i> Reset</a>
+        </form>
+    </div>
     <div style="overflow-x: auto;">
         <table class="table">
             <thead>
                 <tr>
                     <th>No</th>
                     @if(auth()->user()->id_role == 1)
-                    <th>Uploader</th>
+                    <th>User</th>
                     @endif
                     <th>Nama File</th>
                     <th>Status</th>
@@ -42,8 +61,12 @@
                 <tr>
                     <td style="font-weight:600;">{{ $index + 1 }}</td>
                     @if(auth()->user()->id_role == 1)
-                    <td style="color:#666;">
-                        <i class="ph-fill ph-user-circle"></i> {{ $input->user->nama ?? 'Unknown' }}
+                    <td style="font-weight:600; display:flex; align-items:center; gap:10px;">
+                        @php $uName = $input->user->nama ?? 'Unknown'; @endphp
+                        <div class="avatar" style="width:30px; height:30px; font-size:12px; background: {{ ($input->user->id_role ?? 2) == 1 ? 'var(--card-pink)' : 'var(--card-mint)' }};">
+                            {{ substr($uName, 0, 1) }}
+                        </div>
+                        {{ $uName }}
                     </td>
                     @endif
                     <td style="font-weight:500;">{{ $input->nama_file }}</td>
@@ -130,6 +153,11 @@
                 @endforelse
             </tbody>
         </table>
+    </div>
+    
+    <!-- Pagination Links -->
+    <div style="margin-top: 20px;">
+        {{ $inputs->links() }}
     </div>
 </div>
 

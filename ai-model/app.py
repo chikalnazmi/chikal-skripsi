@@ -363,21 +363,32 @@ def build_result_zip(results_list):
             img.save(img_buffer, format="JPEG", quality=95)
             zf.writestr(img_name, img_buffer.getvalue())
 
-            # Save detections as TXT (YOLO-like format, flat, no subfolder)
-            # Format: class_id x_center y_center width height confidence
-            txt_name = img_name.rsplit(".", 1)[0] + ".txt"
-            lines = []
+            # Convert detections to standard LabelMe format
+            shapes = []
             for det in result["detections"]:
-                cls_id = det["class_id"]
-                conf = det["confidence"]
                 x1, y1, x2, y2 = det["bbox"]
-                # Convert to normalized YOLO format
-                x_center = ((x1 + x2) / 2) / img_w
-                y_center = ((y1 + y2) / 2) / img_h
-                w = (x2 - x1) / img_w
-                h = (y2 - y1) / img_h
-                lines.append(f"{cls_id} {x_center:.6f} {y_center:.6f} {w:.6f} {h:.6f} {conf:.4f}")
-            zf.writestr(txt_name, "\n".join(lines))
+                shapes.append({
+                    "label": det["class"],
+                    "points": [
+                        [x1, y1],
+                        [x2, y2]
+                    ],
+                    "group_id": None,
+                    "shape_type": "rectangle",
+                    "flags": {}
+                })
+
+            json_name = img_name.rsplit(".", 1)[0] + ".json"
+            json_data = {
+                "version": "5.2.1",
+                "flags": {},
+                "shapes": shapes,
+                "imagePath": img_name,
+                "imageData": None,
+                "imageHeight": img_h,
+                "imageWidth": img_w
+            }
+            zf.writestr(json_name, json.dumps(json_data, indent=2, ensure_ascii=False))
 
     zip_buffer.seek(0)
     return zip_buffer.getvalue()

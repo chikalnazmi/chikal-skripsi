@@ -29,11 +29,11 @@
                 <div class="avatar">{{ substr(auth()->user()->nama, 0, 1) }}</div>
                 <span>{{ auth()->user()->nama }}</span>
             </div>
-            <form action="{{ route('logout') }}" method="POST" style="margin:0;">
+            <a href="#" class="topbar-icon-btn" title="Logout" onclick="event.preventDefault(); document.getElementById('logout-form').submit();">
+                <i class="ph-bold ph-sign-out"></i>
+            </a>
+            <form id="logout-form" action="{{ route('logout') }}" method="POST" style="display: none;">
                 @csrf
-                <button type="submit" class="topbar-icon-btn" title="Logout">
-                    <i class="ph-bold ph-sign-out"></i>
-                </button>
             </form>
         </div>
     </header>

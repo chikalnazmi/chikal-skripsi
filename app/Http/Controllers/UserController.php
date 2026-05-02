@@ -20,9 +20,18 @@ class UserController extends Controller
         });
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with('role')->get(); // assuming role relationship exists
+        $query = User::with('role');
+        
+        if ($request->filled('search')) {
+            $query->where('nama', 'like', '%' . $request->search . '%')
+                  ->orWhere('username', 'like', '%' . $request->search . '%')
+                  ->orWhere('email', 'like', '%' . $request->search . '%');
+        }
+
+        $users = $query->latest()->paginate(10)->withQueryString();
+        
         return view('users.index', compact('users'));
     }
 

@@ -68,7 +68,7 @@
             <thead>
                 <tr>
                     <th>Nama File</th>
-                    <th>Waktu</th>
+                    <th>Waktu Upload</th>
                     <th>Status</th>
                     <th>Aksi</th>
                 </tr>
@@ -80,7 +80,7 @@
                         <i class="ph-bold ph-file" style="margin-right:6px; opacity:0.5;"></i>
                         {{ $input->nama_file }}
                     </td>
-                    <td style="color:#666;">{{ $input->created_at->format('H:i') }} WIB</td>
+                    <td style="color:#666;">{{ $input->created_at->format('d M Y, H:i') }} WIB</td>
                     <td>
                         @if($input->status == 'completed')
                             <span class="status-badge status-completed">
@@ -128,9 +128,9 @@
                             @endif
 
                             {{-- Delete --}}
-                            <form action="{{ route('inputs.destroy', $input->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus data ini?');">
+                            <form id="delete-form-{{ $input->id }}" action="{{ route('inputs.destroy', $input->id) }}" method="POST">
                                 @csrf @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-sm" style="border:none;">
+                                <button type="button" onclick="openDeleteModal('delete-form-{{ $input->id }}', '{{ $input->nama_file }}')" class="btn btn-danger btn-sm" style="border:none;" title="Hapus">
                                     <i class="ph-bold ph-trash"></i>
                                 </button>
                             </form>
@@ -161,6 +161,23 @@
         </div>
         <div class="preview-modal-body">
             <img id="previewModalImg" src="" alt="Preview Segmentasi">
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div id="deleteModal" class="preview-modal-overlay" style="display:none;" onclick="closeDeleteModal(event)">
+    <div class="preview-modal-content" style="max-width: 400px; text-align: center; padding-bottom: 20px;">
+        <div class="preview-modal-body" style="padding: 30px 20px 20px;">
+            <i class="ph-bold ph-warning-circle" style="font-size: 64px; color: var(--card-pink); margin-bottom: 15px; display: inline-block;"></i>
+            <h3 style="margin-bottom: 10px; font-size: 1.2rem;">Yakin mau menghapus?</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 25px; font-size: 0.95rem;">
+                File <strong id="deleteFileName"></strong> akan dihapus permanen dan tidak bisa dikembalikan.
+            </p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button type="button" class="btn btn-outline" style="border-radius: 8px; flex: 1;" onclick="closeDeleteModal(event, true)">Batal</button>
+                <button type="button" class="btn btn-danger" style="border-radius: 8px; flex: 1; border:none;" onclick="submitDelete()">Ya, Hapus</button>
+            </div>
         </div>
     </div>
 </div>
@@ -219,9 +236,40 @@ function closePreviewModal(event, force) {
     }
 }
 
-// Close modal on Escape key
+// Delete Modal
+let deleteFormToSubmit = null;
+
+function openDeleteModal(formId, fileName) {
+    deleteFormToSubmit = formId;
+    document.getElementById('deleteFileName').textContent = fileName;
+    document.getElementById('deleteModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeDeleteModal(event, force) {
+    if (force || event.target.id === 'deleteModal') {
+        const modal = document.getElementById('deleteModal');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        deleteFormToSubmit = null;
+    }
+}
+
+function submitDelete() {
+    if (deleteFormToSubmit) {
+        // Disable button to prevent double click
+        event.target.innerHTML = '<i class="ph-bold ph-circle-notch"></i> Menghapus...';
+        event.target.disabled = true;
+        document.getElementById(deleteFormToSubmit).submit();
+    }
+}
+
+// Close modals on Escape key
 document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closePreviewModal(e, true);
+    if (e.key === 'Escape') {
+        closePreviewModal(e, true);
+        closeDeleteModal(e, true);
+    }
 });
 </script>
 

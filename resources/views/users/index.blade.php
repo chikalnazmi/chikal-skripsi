@@ -4,11 +4,19 @@
 
 @section('content')
 <div class="content-box">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:15px;">
         <h2 style="margin:0;">User Directory</h2>
-        <a href="{{ route('users.create') }}" class="btn btn-dark">
-            <i class="ph-bold ph-plus"></i> Tambah User Baru
-        </a>
+        
+        <div style="display:flex; gap:15px; align-items:center;">
+            <form action="{{ route('users.index') }}" method="GET" style="display:flex; gap:10px;">
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari user..." class="form-control" style="width:200px; padding:8px; border-radius:8px; border:1px solid #ccc;">
+                <button type="submit" class="btn btn-outline btn-sm" style="padding:8px 15px;"><i class="ph-bold ph-magnifying-glass"></i> Cari</button>
+            </form>
+            
+            <a href="{{ route('users.create') }}" class="btn btn-dark" style="padding:8px 15px;">
+                <i class="ph-bold ph-plus"></i> Tambah User
+            </a>
+        </div>
     </div>
 
     <div style="overflow-x: auto;">
@@ -61,6 +69,11 @@
                 @endforeach
             </tbody>
         </table>
+    </div>
+
+    <!-- Pagination Links -->
+    <div style="margin-top: 20px;">
+        {{ $users->links() }}
     </div>
 </div>
 @endsection
