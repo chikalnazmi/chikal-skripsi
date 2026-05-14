@@ -56,9 +56,9 @@
                                 <i class="ph-bold ph-pencil-simple"></i> Edit
                             </a>
                             @if($user->id != auth()->id())
-                            <form action="{{ route('users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Hapus user ini?');">
+                            <form id="delete-form-{{ $user->id }}" action="{{ route('users.destroy', $user->id) }}" method="POST">
                                 @csrf @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-sm" style="border:none;">
+                                <button type="button" onclick="openDeleteModal('delete-form-{{ $user->id }}', '{{ $user->nama }}')" class="btn btn-danger btn-sm" style="border:none;" title="Hapus">
                                     <i class="ph-bold ph-trash"></i>
                                 </button>
                             </form>
@@ -76,4 +76,59 @@
         {{ $users->links() }}
     </div>
 </div>
+
+<!-- Delete Modal -->
+<div id="deleteModal" class="preview-modal-overlay" style="display:none;" onclick="closeDeleteModal(event)">
+    <div class="preview-modal-content" style="max-width: 400px; text-align: center; padding-bottom: 20px;">
+        <div class="preview-modal-body" style="padding: 30px 20px 20px;">
+            <i class="ph-bold ph-warning-circle" style="font-size: 64px; color: var(--card-pink); margin-bottom: 15px; display: inline-block;"></i>
+            <h3 style="margin-bottom: 10px; font-size: 1.2rem;">Yakin mau menghapus?</h3>
+            <p style="color: var(--text-secondary); margin-bottom: 25px; font-size: 0.95rem;">
+                Data user <strong id="deleteFileName"></strong> akan dihapus dan tidak bisa dikembalikan.
+            </p>
+            <div style="display: flex; gap: 10px; justify-content: center;">
+                <button type="button" class="btn btn-outline" style="border-radius: 8px; flex: 1;" onclick="closeDeleteModal(event, true)">Batal</button>
+                <button type="button" class="btn btn-danger" style="border-radius: 8px; flex: 1; border:none;" onclick="submitDelete(event)">Ya, Hapus</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Delete Modal Logic
+let deleteFormToSubmit = null;
+
+function openDeleteModal(formId, fileName) {
+    deleteFormToSubmit = formId;
+    document.getElementById('deleteFileName').textContent = fileName;
+    document.getElementById('deleteModal').style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeDeleteModal(event, force) {
+    if (force || event.target.id === 'deleteModal') {
+        const modal = document.getElementById('deleteModal');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+        deleteFormToSubmit = null;
+    }
+}
+
+function submitDelete(event) {
+    if (deleteFormToSubmit) {
+        // Disable button to prevent double click
+        const btn = event.target;
+        btn.innerHTML = '<i class="ph-bold ph-circle-notch"></i> Menghapus...';
+        btn.disabled = true;
+        document.getElementById(deleteFormToSubmit).submit();
+    }
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeDeleteModal(e, true);
+    }
+});
+</script>
 @endsection

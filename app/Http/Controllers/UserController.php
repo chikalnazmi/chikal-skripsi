@@ -49,6 +49,9 @@ class UserController extends Controller
             'email' => 'required|email|max:255|unique:users',
             'password' => 'required|string|min:6',
             'id_role' => 'required|exists:role,id'
+        ], [
+            'username.unique' => 'Username ini sudah digunakan, silakan gunakan username yang lain.',
+            'email.unique' => 'Email ini sudah digunakan, silakan gunakan email yang lain.'
         ]);
 
         User::create([
@@ -75,6 +78,9 @@ class UserController extends Controller
             'username' => 'required|string|max:255|unique:users,username,' . $user->id,
             'email' => 'required|email|max:255|unique:users,email,' . $user->id,
             'id_role' => 'required|exists:role,id'
+        ], [
+            'username.unique' => 'Username ini sudah digunakan, silakan gunakan username yang lain.',
+            'email.unique' => 'Email ini sudah digunakan, silakan gunakan email yang lain.'
         ]);
 
         $data = [
@@ -93,12 +99,27 @@ class UserController extends Controller
         return redirect()->route('users.index')->with('success', 'User berhasil diperbarui.');
     }
 
+    public function toggleStatus(User $user)
+    {
+        if ($user->id == auth()->id()) {
+            return redirect()->back()->with('error', 'Tidak dapat mengubah status diri sendiri.');
+        }
+
+        // Asumsi ada kolom 'status' dengan nilai 'aktif' atau 'nonaktif'
+        $user->status = $user->status === 'aktif' ? 'nonaktif' : 'aktif';
+        $user->save();
+
+        return redirect()->back()->with('success', 'Status user berhasil diubah.');
+    }
+
     public function destroy(User $user)
     {
         if ($user->id == auth()->id()) {
             return redirect()->back()->with('error', 'Tidak dapat menghapus diri sendiri.');
         }
-        $user->delete();
-        return redirect()->route('users.index')->with('success', 'User berhasil dihapus.');
+        
+        $user->delete(); // Hard delete karena SoftDeletes sudah dihapus dari Model
+
+        return redirect()->route('users.index')->with('success', 'User berhasil dihapus permanen.');
     }
 }
