@@ -15,7 +15,11 @@ class InputApiController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
-        $query = Input::with(['hasils'])->where('id_user', $user->id);
+        $query = Input::with(['hasils', 'user']);
+
+        if ($user->id_role != 1) {
+            $query->where('id_user', $user->id);
+        }
 
         if ($request->filled('search')) {
             $query->where('nama_file', 'like', "%{$request->search}%");

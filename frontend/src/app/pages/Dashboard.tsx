@@ -13,6 +13,7 @@ interface FileItem {
   status: "pending" | "processing" | "completed" | "failed";
   file_path: string;
   hasils?: { file_path: string; sample_prediksi: string }[];
+  user?: { nama: string };
 }
 
 // Map status Laravel → label Indonesia
@@ -24,7 +25,7 @@ const statusLabel: Record<string, string> = {
 };
 
 export function Dashboard() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [isDragging, setIsDragging] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isPreviewModalOpen, setIsPreviewModalOpen] = useState(false);
@@ -60,6 +61,18 @@ export function Dashboard() {
       case "failed": return <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-semibold flex items-center gap-1.5 w-fit">Gagal</span>;
       default: return <span className="px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-semibold w-fit">{label}</span>;
     }
+  };
+
+  const formatDateTime = (dateString?: string) => {
+    if (!dateString) return '-';
+    const d = new Date(dateString);
+    return d.toLocaleString('id-ID', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   const handleDeleteClick = (file: FileItem) => { setSelectedFile(file); setIsDeleteModalOpen(true); };
@@ -214,6 +227,7 @@ export function Dashboard() {
             <thead>
               <tr className="bg-[#fcfaf6]">
                 <th className="px-6 py-4 text-xs font-semibold text-[#23384f]/60 uppercase tracking-wider border-b border-[#f1efe9]">Nama File</th>
+                {isAdmin && <th className="px-6 py-4 text-xs font-semibold text-[#23384f]/60 uppercase tracking-wider border-b border-[#f1efe9]">Pengunggah</th>}
                 <th className="px-6 py-4 text-xs font-semibold text-[#23384f]/60 uppercase tracking-wider border-b border-[#f1efe9]">Waktu Unggah</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#23384f]/60 uppercase tracking-wider border-b border-[#f1efe9]">Status</th>
                 <th className="px-6 py-4 text-xs font-semibold text-[#23384f]/60 uppercase tracking-wider border-b border-[#f1efe9]">Aksi</th>
@@ -221,7 +235,7 @@ export function Dashboard() {
             </thead>
             <tbody className="divide-y divide-[#f1efe9]">
               {isLoading ? (
-                <tr><td colSpan={4} className="px-6 py-12 text-center text-[#23384f]/60">Memuat data...</td></tr>
+                <tr><td colSpan={isAdmin ? 5 : 4} className="px-6 py-12 text-center text-[#23384f]/60">Memuat data...</td></tr>
               ) : filteredFiles.length > 0 ? filteredFiles.map((file) => (
                 <tr key={file.id} className="hover:bg-[#f1efe9]/50 transition-colors group">
                   <td className="px-6 py-4">
@@ -229,11 +243,16 @@ export function Dashboard() {
                       <div className="w-10 h-10 rounded-xl bg-[#f1efe9] flex items-center justify-center text-[#23384f]/60"><File size={18} /></div>
                       <div>
                         <p className="text-sm font-semibold text-[#23384f]">{file.nama_file}</p>
-                        <p className="text-xs text-[#23384f]/60 mt-0.5">{file.created_at?.split('T')[0]}</p>
+                        <p className="text-xs text-[#23384f]/60 mt-0.5">{formatDateTime(file.created_at)}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-4 text-sm text-[#23384f]/80">{file.created_at?.split('T')[0]}</td>
+                  {isAdmin && (
+                    <td className="px-6 py-4 text-sm font-medium text-[#23384f]/80">
+                      {file.user?.nama || '-'}
+                    </td>
+                  )}
+                  <td className="px-6 py-4 text-sm text-[#23384f]/80">{formatDateTime(file.created_at)}</td>
                   <td className="px-6 py-4">{getStatusBadge(file.status)}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center justify-start gap-2">
@@ -252,7 +271,7 @@ export function Dashboard() {
                   </td>
                 </tr>
               )) : (
-                <tr><td colSpan={4} className="px-6 py-12 text-center text-[#23384f]/60">Tidak ada file yang ditemukan.</td></tr>
+                <tr><td colSpan={isAdmin ? 5 : 4} className="px-6 py-12 text-center text-[#23384f]/60">Tidak ada file yang ditemukan.</td></tr>
               )}
             </tbody>
           </table>

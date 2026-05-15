@@ -56,7 +56,7 @@ export default defineConfig({
   // Build output ke public/ Laravel (untuk production)
   build: {
     outDir: '../public',
-    emptyOutDir: true,
+    emptyOutDir: false,
     manifest: true,
   },
 })

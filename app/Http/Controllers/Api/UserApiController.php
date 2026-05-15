@@ -13,7 +13,7 @@ class UserApiController extends Controller
     private function adminOnly()
     {
         if (auth()->user()->id_role != 1) {
-            abort(response()->json(['error' => 'Forbidden. Admin only.'], 403));
+            abort(403, 'Forbidden. Admin only.');
         }
     }
 

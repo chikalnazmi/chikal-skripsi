@@ -39,8 +39,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = async () => {
-    await api.post('/logout');
-    setUser(null);
+    try {
+      await api.post('/logout');
+    } catch (e) {
+      console.warn("Logout API failed, forcing local logout", e);
+    } finally {
+      setUser(null);
+    }
   };
 
   return (
